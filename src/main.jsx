@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import {
   PawPrint,
   Sparkles,
-  Compass,
   Bookmark,
   Users,
   Settings2,
@@ -30,9 +29,20 @@ import {
   Trash2,
   Menu,
   CheckCheck,
+  FolderOpen,
+  ChevronRight,
+  CircleHelp,
+  ListOrdered,
 } from "lucide-react";
 import { initialReels } from "./data";
-import { categories, selectReels, instagramUrl, accountName, referenceId, assetUrl } from "./domain";
+import {
+  categories,
+  selectReels,
+  instagramUrl,
+  accountName,
+  referenceId,
+  assetUrl,
+} from "./domain";
 import "./styles.css";
 import "@fontsource-variable/manrope";
 
@@ -213,81 +223,83 @@ function App() {
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${mobile ? "is-open" : ""}`}>
+      {mobile && (
+        <button
+          className="sidebar-scrim"
+          aria-label="Закрыть меню"
+          onClick={() => setMobile(false)}
+        />
+      )}
+      <aside
+        id="studio-sidebar"
+        className={`sidebar ${mobile ? "is-open" : ""}`}
+      >
         <a
           className="brand"
           href="#"
           onClick={() => navigate("discover")}
-          aria-label="Лапки — главная"
+          aria-label="Reels Studio — главная"
         >
           <span className="brand-mark">
-            <PawPrint size={24} fill="currentColor" />
+            <Clapperboard size={19} strokeWidth={1.7} />
           </span>
-          лапки<span className="brand-dot">.</span>
+          Reels Studio
         </a>
-        <div className="workspace">
-          <span className="workspace-avatar">🐩</span>
+        <button className="workspace" onClick={() => navigate("settings")}>
+          <span className="workspace-avatar">
+            <FolderOpen size={17} />
+          </span>
           <div>
             <strong>{profile.name}</strong>
-            <small>Студия контента</small>
+            <small>Мой блог</small>
           </div>
-          <ChevronDown size={15} />
-        </div>
-        <div className="nav-label">ВАША СТУДИЯ</div>
+          <ChevronDown size={14} />
+        </button>
+        <div className="nav-label">Рабочее пространство</div>
         <nav aria-label="Основное меню">
           <button
             className={page === "discover" ? "nav-item active" : "nav-item"}
             onClick={() => navigate("discover")}
+            aria-label="Поиск идей"
           >
-            <Compass size={19} />
-            Поиск идей<span className="nav-new">NEW</span>
+            <ListOrdered size={17} />
+            Референсы<span className="nav-count">{reels.length}</span>
           </button>
           <button
             className={page === "saved" ? "nav-item active" : "nav-item"}
             onClick={() => navigate("saved")}
           >
-            <Bookmark size={19} />
+            <Bookmark size={17} />
             Избранное<span className="nav-count">{saved.length}</span>
           </button>
           <button
             className={page === "sources" ? "nav-item active" : "nav-item"}
             onClick={() => navigate("sources")}
           >
-            <Users size={19} />
+            <Users size={17} />
             Авторы и источники
           </button>
         </nav>
-        <div className="sidebar-tip">
-          <span className="tip-icon">
-            <Sparkles size={20} />
-          </span>
-          <strong>Вдохновение — рядом</strong>
-          <p>
-            Берём идею из тренда.
-            <br />
-            Добавляем характер вашего пса.
-          </p>
-          <button onClick={() => setModal("method")}>
-            Как это работает <ArrowUpRight size={15} />
-          </button>
-        </div>
         <div className="sidebar-bottom">
+          <button className="nav-item" onClick={() => setModal("method")}>
+            <CircleHelp size={17} />
+            Как это работает
+          </button>
           <button
-            className="nav-item"
-            onClick={() => {
-              navigate("settings");
-            }}
+            className={page === "settings" ? "nav-item active" : "nav-item"}
+            onClick={() => navigate("settings")}
           >
-            <Settings2 size={19} />
+            <Settings2 size={17} />
             Настройки блога
           </button>
           <div className="user">
-            <span className="user-avatar">М</span>
+            <span className="user-avatar">
+              {profile.name.slice(0, 1).toUpperCase()}
+            </span>
             <div>
               <strong>Моя студия</strong>
-              <small>Для маленькой звезды</small>
+              <small>Локальное пространство</small>
             </div>
-            <span className="status-dot" />
           </div>
         </div>
       </aside>
@@ -298,12 +310,14 @@ function App() {
             <button
               className="mobile-menu icon-button"
               aria-label="Открыть меню"
+              aria-expanded={mobile}
+              aria-controls="studio-sidebar"
               onClick={() => setMobile(!mobile)}
             >
               <Menu size={21} />
             </button>
             <span>Студия</span>
-            <span className="slash">/</span>
+            <ChevronRight size={12} className="slash" />
             <strong>
               {active
                 ? "Референс и сценарий"
@@ -313,7 +327,7 @@ function App() {
                     ? "Настройки блога"
                     : page === "saved"
                       ? "Избранное"
-                      : "Поиск идей"}
+                      : "Референсы"}
             </strong>
           </div>
           <div className="topbar-right">
@@ -373,136 +387,30 @@ function App() {
             <>
               <div className="page-title-row">
                 <div>
-                  <div className="eyebrow">
-                    <span className="mini-line" />
-                    МАЛЕНЬКИЙ ГЕРОЙ. БОЛЬШИЕ ИДЕИ.
-                  </div>
                   <h1>
                     {page === "saved"
                       ? "Сохранено на потом"
-                      : "Вдохновение для ваших рилсов"}
-                    <span className="title-star">✦</span>
+                      : "Референсы для рилсов"}
                   </h1>
                   <p className="page-description">
                     {page === "saved"
-                      ? "Идеи, которые ждут своего звёздного часа."
-                      : "Находите идеи, примеряйте тренды и снимайте в своём стиле."}
+                      ? "Ваша подборка идей и сценариев для следующих съёмок."
+                      : "Выбирайте идеи, адаптируйте сценарии и сохраняйте лучшее."}
                   </p>
                 </div>
-                <span className="page-stamp">
-                  <PawPrint size={17} />С любовью к хвостикам
-                </span>
               </div>
-              {page === "discover" && (
-                <section className="hero">
-                  <div className="hero-content">
-                    <span className="hero-label">
-                      <Sparkles size={14} />
-                      ВАШ СЛЕДУЮЩИЙ КЛАССНЫЙ РИЛС
-                    </span>
-                    <h2>
-                      Большие идеи.
-                      <br />
-                      Для маленьких лап.
-                    </h2>
-                    <p>
-                      От модных переодевашек до полезных советов —
-                      <br className="desktop-break" /> всё, что хочется снять с
-                      вашим пуделем.
-                    </p>
-                    <button
-                      onClick={() =>
-                        document
-                          .getElementById("ideas")
-                          .scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                          })
-                      }
-                    >
-                      Найти ту самую идею <ArrowRight size={17} />
-                    </button>
-                  </div>
-                  <div className="hero-art">
-                    <div className="orbit orbit-one" />
-                    <div className="orbit orbit-two" />
-                    <span className="hero-spark spark-one">✦</span>
-                    <span className="hero-spark spark-two">✧</span>
-                    <div className="hero-photo">
-                      <img
-                        src={assetUrl('images/hero.jpg')}
-                        alt="Кудрявый пудель — главный герой блога"
-                      />
-                      <span className="hero-photo-caption">
-                        main character energy
-                      </span>
-                    </div>
-                    <div className="floating-note">
-                      <span>🐾</span>
-                      <div>
-                        <strong>Он уже готов к съёмке</strong>
-                        <small>Осталось выбрать идею</small>
-                      </div>
-                    </div>
-                    <span className="sticker">
-                      100%<small>хороший мальчик</small>
-                    </span>
-                  </div>
-                </section>
-              )}
-              <section className="ideas-section" id="ideas">
-                <div className="section-heading">
-                  <div>
-                    <h2>{page === "saved" ? "Ваша подборка" : "Есть идея!"}</h2>
-                    <span className="number-badge">{filtered.length}</span>
-                  </div>
-                  <button
-                    className="text-button"
-                    onClick={() => setModal("method")}
-                  >
-                    <Info size={14} />
-                    Как устроен рейтинг
-                  </button>
-                </div>
-                <div
-                  className="category-row"
-                  role="group"
-                  aria-label="Тематика"
-                >
-                  <div className="category-tabs">
-                    {categories.map((c, i) => (
-                      <button
-                        key={c}
-                        className={
-                          category === c ? "category active" : "category"
-                        }
-                        onClick={() => setCategory(c)}
-                      >
-                        {i === 0 && <Sparkles size={15} />}
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="region-filter">
-                    <Globe2 size={15} />
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      aria-label="Регион"
-                    >
-                      <option value="all">Весь мир</option>
-                      <option value="world">Зарубежные</option>
-                      <option value="local">Локальные</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="search-row">
+              <section
+                className="ideas-section"
+                id="ideas"
+                aria-label="Рейтинг референсов"
+              >
+                <div className="filters-bar">
                   <label className="search-field">
-                    <Search size={18} />
+                    <Search size={16} />
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Найти идею, тему или автора…"
+                      placeholder="Поиск по идеям, авторам, темам…"
                       aria-label="Поиск референсов"
                     />
                     {query && (
@@ -511,31 +419,67 @@ function App() {
                         aria-label="Очистить поиск"
                         onClick={() => setQuery("")}
                       >
-                        <X size={15} />
+                        <X size={14} />
                       </button>
                     )}
                   </label>
-                  <label className="sort-field">
-                    <SlidersHorizontal size={15} />
-                    <select
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value)}
-                      aria-label="Сортировка"
-                    >
-                      <option value="score">По потенциалу</option>
-                      <option value="recent">Сначала добавленные</option>
-                    </select>
-                  </label>
+                  <div
+                    className="category-tabs"
+                    role="group"
+                    aria-label="Тематика"
+                  >
+                    {categories.map((c) => (
+                      <button
+                        key={c}
+                        className={
+                          category === c ? "category active" : "category"
+                        }
+                        onClick={() => setCategory(c)}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="collection-note">
-                  <span className="note-dot" />
-                  <span>
-                    Стартовая подборка по вашим примерам. Оценки редакционные,
-                    статистика Instagram не подключена.
+                <div className="list-toolbar">
+                  <span className="results-count">
+                    Идей в подборке <span>{filtered.length}</span>
                   </span>
+                  <div className="list-controls">
+                    <label className="region-filter">
+                      <Globe2 size={14} />
+                      <select
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                        aria-label="Регион"
+                      >
+                        <option value="all">Весь мир</option>
+                        <option value="world">Зарубежные</option>
+                        <option value="local">Локальные</option>
+                      </select>
+                    </label>
+                    <label className="sort-field">
+                      <SlidersHorizontal size={14} />
+                      <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                        aria-label="Сортировка"
+                      >
+                        <option value="score">По потенциалу</option>
+                        <option value="recent">Сначала добавленные</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div className="list-header" aria-hidden="true">
+                  <span>#</span>
+                  <span className="reference-heading">Референс</span>
+                  <span>Тематика</span>
+                  <span>Приоритет</span>
+                  <span />
                 </div>
                 {filtered.length ? (
-                  <div className="reel-grid">
+                  <div className="reel-list" role="list" aria-label="Референсы">
                     {filtered.map((r, index) => (
                       <ReelCard
                         key={r.id}
@@ -576,11 +520,17 @@ function App() {
                 )}
               </section>
               <footer className="page-footer">
-                <PawPrint size={15} />
-                <span>В тренде можно быть. Собой — нужно.</span>
-                <span className="footer-right">
-                  Сделано для вашего маленького героя
+                <span>
+                  <span className="note-dot" />
+                  Демо-подборка · оценки редакционные, статистика не подключена
                 </span>
+                <button
+                  className="text-button"
+                  onClick={() => setModal("method")}
+                >
+                  <Info size={13} />
+                  Как устроен рейтинг
+                </button>
               </footer>
             </>
           )}
@@ -690,92 +640,64 @@ function App() {
 
 function ReelCard({ reel, rank, saved, toggleSave }) {
   return (
-    <article className="reel-card">
+    <article className="reel-card" role="listitem">
+      <span className="rank-number" aria-label={`Место ${rank}`}>
+        {String(rank).padStart(2, "0")}
+      </span>
       <a
         className="card-visual"
         href={`#reel/${reel.id}`}
-        style={{ "--photo-position": reel.position || "center" }}
+        aria-label={`Открыть: ${reel.title}`}
       >
-        <img src={reel.image} alt={reel.title} loading="lazy" />
-        <div className="card-shade" />
-        <span className={`rank-badge ${rank === 1 ? "top" : ""}`}>
-          <span>#</span>
-          {rank}
-        </span>
+        <img
+          src={reel.image}
+          alt={reel.title}
+          loading="lazy"
+          style={{ objectPosition: reel.position || "center" }}
+        />
         <span className="duration">
-          <Play size={10} fill="currentColor" />
+          <Play size={8} fill="currentColor" />
           {reel.duration}
         </span>
-        <span className="card-image-text">
-          {reel.id === "prada" ? (
-            <>
-              Сказала, что больше
-              <br />
-              не покупаю одежду…
-            </>
-          ) : reel.id === "groomer" ? (
-            <>
-              Сохраните это
-              <br />
-              для своего грумера 🐩
-            </>
-          ) : reel.id === "boss" ? (
-            <>
-              Он ведёт себя так,
-              <br />
-              будто платит за квартиру
-            </>
-          ) : (
-            reel.title
-          )}
-        </span>
-        <span className="play-circle">
-          <Play size={19} fill="currentColor" />
-        </span>
-        <span className="preview-label">
-          {reel.url ? "Ссылка · иллюстрация" : "Концепция · иллюстрация"}
-        </span>
       </a>
-      <button
-        className={`save-card ${saved ? "is-saved" : ""}`}
-        aria-label={saved ? "Убрать из избранного" : "Сохранить в избранное"}
-        onClick={toggleSave}
-      >
-        <Bookmark size={17} fill={saved ? "currentColor" : "none"} />
-      </button>
-      <div className="card-body">
-        <div className="card-meta">
-          <span className={`tag ${reel.color || "green"}`}>
-            {reel.category}
-          </span>
-          <span className="score">
-            <Sparkles size={12} />
-            {reel.score}
-            <span>/100</span>
-          </span>
-        </div>
+      <div className="row-info">
         <a href={`#reel/${reel.id}`} className="card-title">
           {reel.title}
         </a>
         <div className="card-creator">
-          <span className="creator-icon">
-            {reel.region === "world" ? (
-              <Globe2 size={11} />
-            ) : (
-              <PawPrint size={11} />
-            )}
-          </span>
-          {reel.creator}
+          {reel.region === "world" ? (
+            <Globe2 size={12} />
+          ) : (
+            <PawPrint size={12} />
+          )}
+          <span>{reel.creator}</span>
+          <span className="meta-divider">·</span>
+          <span>{reel.url ? "Ссылка добавлена" : "Концепция"}</span>
         </div>
-        <div className="card-bottom">
-          <span>
-            <span className={`tiny-dot ${reel.color || "green"}`} />
-            {reel.tag}
-          </span>
-          <a href={`#reel/${reel.id}`}>
-            Сценарий <ArrowUpRight size={14} />
-          </a>
-        </div>
+        <p className="row-description">{reel.hook}</p>
+      </div>
+      <div className="row-category">
+        <span className={`tag ${reel.color || "green"}`}>{reel.category}</span>
+      </div>
+      <div
+        className="row-score"
+        title="Редакционная оценка соответствия вашему блогу"
+      >
+        <span>{reel.score}</span>
+        <small>/ 100</small>
+      </div>
+      <div className="row-actions">
+        <a className="scenario-link" href={`#reel/${reel.id}`}>
+          Сценарий
+          <ArrowRight size={13} />
+        </a>
+        <button
+          className={`save-card ${saved ? "is-saved" : ""}`}
+          aria-label={saved ? "Убрать из избранного" : "Сохранить в избранное"}
+          onClick={toggleSave}
+        >
+          <Bookmark size={16} fill={saved ? "currentColor" : "none"} />
+        </button>
       </div>
     </article>
   );
@@ -795,7 +717,7 @@ function Detail({ reel, saved, toggleSave, edit, copy, back }) {
       </button>
       <div className="detail-top">
         <div>
-          <div className="eyebrow">ВАШ СЛЕДУЮЩИЙ СЮЖЕТ</div>
+          <div className="eyebrow">Референс / сценарий</div>
           <h1>{reel.title}</h1>
         </div>
         <button
@@ -837,7 +759,9 @@ function Detail({ reel, saved, toggleSave, edit, copy, back }) {
                       >
                         <Play size={26} fill="currentColor" />
                       </button>
-                      <span className="concept-note">Обложка иллюстративная · оригинал по кнопке</span>
+                      <span className="concept-note">
+                        Обложка иллюстративная · оригинал по кнопке
+                      </span>
                     </>
                   ) : (
                     <span className="concept-note">
@@ -988,7 +912,7 @@ function Editor({ reel, onSave }) {
       <span className="modal-emblem">
         <Pencil size={24} />
       </span>
-      <h2 id="modal-title">Добавьте ваш характер</h2>
+      <h2 id="modal-title">Редактировать сценарий</h2>
       <p>Сохранённые правки останутся в этом браузере.</p>
       <label className="form-field">
         Название
@@ -1084,7 +1008,7 @@ function AddReference({ onAdd }) {
           creator: "Добавлено вами",
           country:
             region === "world" ? "Зарубежный референс" : "Локальный референс",
-          image: assetUrl('images/groomer.jpg'),
+          image: assetUrl("images/groomer.jpg"),
           score: 50,
           created: Date.now(),
           duration: "—",
@@ -1120,7 +1044,7 @@ function AddReference({ onAdd }) {
       <span className="modal-emblem">
         <Link size={25} />
       </span>
-      <h2 id="modal-title">Нашли что-то классное?</h2>
+      <h2 id="modal-title">Добавить референс</h2>
       <p>Сохраните рилс и создайте свою версию сценария.</p>
       <label className="form-field">
         Ссылка на Instagram
@@ -1194,10 +1118,8 @@ function Sources({ sources, setSources, notify }) {
   };
   return (
     <div className="sources-page">
-      <div className="eyebrow">СМОТРИМ ШИРЕ</div>
-      <h1>
-        Авторы и источники<span className="title-star">✦</span>
-      </h1>
+      <div className="eyebrow">Исследование</div>
+      <h1>Авторы и источники</h1>
       <p className="page-description">
         Ищем интересные механики за пределами своей ленты.
       </p>
@@ -1361,9 +1283,11 @@ function Settings({ profile, save }) {
   const [draft, setDraft] = useState(profile);
   return (
     <div className="settings-page">
-      <div className="eyebrow">ГЛАВНЫЙ ГЕРОЙ В КАДРЕ</div>
+      <div className="eyebrow">Рабочее пространство</div>
       <h1>Настройки блога</h1>
-      <p className="page-description">Немного о вашей маленькой звезде.</p>
+      <p className="page-description">
+        Профиль блога и ваши ориентиры для съёмок.
+      </p>
       <form
         className="content-panel settings-form"
         onSubmit={(e) => {

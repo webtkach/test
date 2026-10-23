@@ -7,16 +7,30 @@ const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
 });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, offline: process.env.APP_OFFLINE === '1' });
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 1100 },
+  offline: process.env.APP_OFFLINE === "1",
+});
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
-const portable = process.env.APP_HTML ? await readFile(process.env.APP_HTML, 'utf8') : null;
-const base = portable ? 'http://lapki.test/' : process.env.APP_URL || "http://127.0.0.1:5173";
+const portable = process.env.APP_HTML
+  ? await readFile(process.env.APP_HTML, "utf8")
+  : null;
+const base = portable
+  ? "http://lapki.test/"
+  : process.env.APP_URL || "http://127.0.0.1:5173";
 async function configurePortable(target) {
   if (!portable) return;
-  await target.route('**/*', async route => {
-    if (route.request().url() === base) return route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: portable });
-    throw new Error(`Portable app unexpectedly requested an external resource: ${route.request().url()}`);
+  await target.route("**/*", async (route) => {
+    if (route.request().url() === base)
+      return route.fulfill({
+        status: 200,
+        contentType: "text/html; charset=utf-8",
+        body: portable,
+      });
+    throw new Error(
+      `Portable app unexpectedly requested an external resource: ${route.request().url()}`,
+    );
   });
 }
 await configurePortable(page);
@@ -25,6 +39,17 @@ try {
   await page.goto(base);
   await page.locator(".reel-card").first().waitFor();
   assert.equal(await page.locator(".reel-card").count(), 6);
+  assert.equal(await page.locator(".hero").count(), 0);
+  assert.equal(await page.locator(".rank-number").first().textContent(), "01");
+  const desktopRows = await page
+    .locator(".reel-card")
+    .evaluateAll((rows) => rows.map((row) => row.getBoundingClientRect().top));
+  assert(
+    desktopRows.every(
+      (top, index) => index === 0 || top > desktopRows[index - 1],
+    ),
+    "References must appear as vertically ranked rows",
+  );
   await page
     .locator(".reel-card img")
     .first()
@@ -35,7 +60,11 @@ try {
       "Every illustration must load",
     );
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: "test-results/desktop.png", fullPage: true, animations: "disabled" });
+  await page.screenshot({
+    path: "test-results/desktop.png",
+    fullPage: true,
+    animations: "disabled",
+  });
 
   await page.getByLabel("Поиск референсов", { exact: true }).fill("грумера");
   assert.equal(await page.locator(".reel-card").count(), 1);
@@ -185,7 +214,7 @@ try {
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
-    offline: process.env.APP_OFFLINE === '1',
+    offline: process.env.APP_OFFLINE === "1",
   });
   mobile.on("pageerror", (error) => errors.push(error.message));
   await configurePortable(mobile);
@@ -193,12 +222,26 @@ try {
   await mobile.locator(".reel-card").first().waitFor();
   for (const width of [360, 390, 768]) {
     await mobile.setViewportSize({ width, height: 844 });
-    assert(await mobile.locator('.hero').evaluate(el => {
-      const hero = el.getBoundingClientRect();
-      const button = el.querySelector('.hero-content > button').getBoundingClientRect();
-      return button.bottom <= hero.bottom && button.left >= hero.left;
-    }), `Hero action must be inside the banner at ${width}px`);
-    assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), false, `No horizontal overflow at ${width}px`);
+    const row = mobile.locator(".reel-card").first();
+    assert(
+      await row
+        .getByRole("link", { name: "Сценарий", exact: true })
+        .isVisible(),
+      `Scenario action is visible at ${width}px`,
+    );
+    assert(
+      await row
+        .getByRole("button", { name: "Сохранить в избранное" })
+        .isVisible(),
+      `Bookmark is visible at ${width}px`,
+    );
+    assert.equal(
+      await mobile.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      false,
+      `No horizontal overflow at ${width}px`,
+    );
   }
   await mobile.setViewportSize({ width: 390, height: 844 });
   assert.equal(
@@ -208,7 +251,11 @@ try {
     false,
     "Mobile must not overflow horizontally",
   );
-  await mobile.screenshot({ path: "test-results/mobile.png", fullPage: true, animations: "disabled" });
+  await mobile.screenshot({
+    path: "test-results/mobile.png",
+    fullPage: true,
+    animations: "disabled",
+  });
   await mobile.getByRole("button", { name: "Открыть меню" }).click();
   await mobile
     .locator(".sidebar")
